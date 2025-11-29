@@ -18,14 +18,12 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
       - name: Build package
-        working-directory: 'MCP ECU'
         run: |
           python -m build
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
-          packages-dir: 'MCP ECU/dist'
+          packages-dir: dist
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
-
 
