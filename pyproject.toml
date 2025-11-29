@@ -1,0 +1,46 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mcp-can"
+version = "0.1.0"
+description = "MCP + vCAN demo: CAN simulation, DBC decoding, and MCP server."
+readme = "README.md"
+requires-python = ">=3.8"
+license = { text = "MIT" }
+authors = [
+  { name = "Your Name", email = "you@example.com" }
+]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Software Development :: Libraries",
+  "Topic :: System :: Emulators",
+]
+urls = { "Homepage" = "https://github.com/your-org/mcp-can" }
+dependencies = [
+  "python-can>=4.0",
+  "cantools>=40.0",
+  "mcp>=1.7.0",
+  "httpx-sse>=0.4.0",
+  "typer>=0.9.0",
+  "pydantic>=2.0",
+  "pydantic-settings>=2.0",
+  "uvicorn>=0.22.0",
+  "rich>=13.0.0"
+]
+
+[project.scripts]
+mcp-can = "mcp_can.cli:app"
+mcp-can-server = "mcp_can.server.fastmcp_server:main"
+mcp-can-sim = "mcp_can.simulator.runner:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"mcp_can" = ["py.typed"]
+
+

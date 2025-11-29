@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.10", "3.11"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r "MCP ECU/requirements.txt"
+          pip install -e "MCP ECU"
+          pip install pytest ruff mypy
+      - name: Lint (ruff)
+        run: |
+          ruff check "MCP ECU"
+      - name: Type check (mypy)
+        run: |
+          mypy "MCP ECU/src"
+      - name: Run tests
+        env:
+          PYTHONPATH: "MCP ECU/src"
+        run: |
+          pytest -q "MCP ECU/tests"
+
+
