@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import List, Optional, Tuple
 
-
 OBD_BROADCAST_ID = 0x7DF
 OBD_RESPONSE_BASE_ID = 0x7E8  # first ECU response ID
 
@@ -84,8 +83,9 @@ def parse_request(data: bytes) -> Tuple[int, Optional[int]]:
     return (service, pid)
 
 
-def build_response_frame(payload: List[int], responder_id: int = OBD_RESPONSE_BASE_ID) -> Tuple[int, bytes]:
+def build_response_frame(
+    payload: List[int],
+    responder_id: int = OBD_RESPONSE_BASE_ID,
+) -> Tuple[int, bytes]:
     data = _single_frame(payload)
     return (responder_id, bytes(data))
-
-

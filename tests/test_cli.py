@@ -1,7 +1,6 @@
 import json
 import time
 
-import typer
 from typer.testing import CliRunner
 
 from mcp_can import cli as cli_module
@@ -65,4 +64,3 @@ def test_cli_obd_request_basic(monkeypatch):
     assert out["arbitration_id"] == hex(0x7E8)
     assert out["data"][0] == 3  # length
     assert out["data"][1] == 0x41 and out["data"][2] == 0x0D
-

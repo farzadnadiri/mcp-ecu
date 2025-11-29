@@ -1,22 +1,23 @@
 import json
 import threading
-from typing import Optional, List
+from typing import List, Optional
 
 import typer
 
-from .config import get_settings
 from .bus import make_bus, read_frames, shutdown_bus
-from .dbc import load_dbc, decode_frame
-from .simulator.runner import run_simulator
-from .server.fastmcp_server import main as run_server
+from .config import get_settings
+from .dbc import decode_frame, load_dbc
 from .obd import build_request
-
+from .server.fastmcp_server import main as run_server
+from .simulator.runner import run_simulator
 
 app = typer.Typer(help="MCP-CAN: simulate, inspect and serve CAN data over MCP.")
 
 
 @app.command()
-def server(port: Optional[int] = typer.Option(None, help="MCP server port (default from env)")) -> None:
+def server(
+    port: Optional[int] = typer.Option(None, help="MCP server port (default from env)")
+) -> None:
     if port is not None:
         # Allow overriding via environment before importing server
         import os
@@ -62,10 +63,17 @@ def decode(id: str, data: str) -> None:
     arb_id = int(id, 16) if id.lower().startswith("0x") else int(id)
     bytes_list: List[int] = []
     if "," in data:
-        bytes_list = [int(x.strip(), 16 if x.strip().startswith("0x") else 10) for x in data.split(",") if x.strip()]
+        bytes_list = [
+            int(x.strip(), 16 if x.strip().startswith("0x") else 10)
+            for x in data.split(",")
+            if x.strip()
+        ]
     else:
         parts = [p for p in data.replace(",", " ").split(" ") if p]
-        bytes_list = [int(x.strip(), 16 if all(c in "0123456789abcdefABCDEF" for c in x) else 10) for x in parts]
+        bytes_list = [
+            int(x.strip(), 16 if all(c in "0123456789abcdefABCDEF" for c in x) else 10)
+            for x in parts
+        ]
     decoded = decode_frame(db, arb_id, bytes(bytes_list))
     typer.echo(json.dumps(decoded, indent=2))
 
@@ -126,8 +134,16 @@ def obd_request(
 
 
 @app.command("demo")
-def demo(port: Optional[int] = typer.Option(None, help="Run simulator + server in one process (shared virtual bus)")) -> None:
-    """Run simulator in a background thread and start the MCP server (helps on Windows with virtual backend)."""
+def demo(
+    port: Optional[int] = typer.Option(
+        None,
+        help="Run simulator + server in one process (shared virtual bus)",
+    ),
+) -> None:
+    """Run simulator in a background thread and start the MCP server.
+
+    Helps on Windows with virtual backend.
+    """
     sim_thread = threading.Thread(target=run_simulator, daemon=True)
     sim_thread.start()
     if port is not None:

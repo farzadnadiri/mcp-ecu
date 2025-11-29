@@ -1,19 +1,25 @@
+import random
 import threading
 import time
-import random
 from typing import List, Tuple
 
 import can
 import cantools
 
-from ..config import get_settings
 from ..bus import make_bus
+from ..config import get_settings
+from ..obd import OBD_BROADCAST_ID, build_response_frame, parse_request, simulate_response
 from .profiles import DEFAULT_PROFILE
-from ..obd import parse_request, simulate_response, build_response_frame, OBD_BROADCAST_ID
 
 
 class SimThread(threading.Thread):
-    def __init__(self, db: cantools.database.Database, msg_name: str, period: float, bus: can.BusABC):
+    def __init__(
+        self,
+        db: cantools.database.Database,
+        msg_name: str,
+        period: float,
+        bus: can.BusABC,
+    ):
         super().__init__(daemon=True)
         self.db = db
         self.msg = db.get_message_by_name(msg_name)
@@ -39,7 +45,11 @@ class SimThread(threading.Thread):
             try:
                 signals = {sig.name: self._random_signal_value(sig) for sig in self.msg.signals}
                 data = self.msg.encode(signals)
-                can_msg = can.Message(arbitration_id=self.msg.frame_id, data=data, is_extended_id=False)
+                can_msg = can.Message(
+                    arbitration_id=self.msg.frame_id,
+                    data=data,
+                    is_extended_id=False,
+                )
                 self.bus.send(can_msg)
                 # print(f"Sent {self.msg.name}: {signals}")
             except Exception as e:
@@ -56,6 +66,7 @@ def run_simulator(profile: List[Tuple[str, float]] = DEFAULT_PROFILE) -> None:
         def __init__(self, bus: can.BusABC):
             super().__init__(daemon=True)
             self.bus = bus
+
         def run(self) -> None:
             while True:
                 msg = self.bus.recv(timeout=0.1)
@@ -65,7 +76,11 @@ def run_simulator(profile: List[Tuple[str, float]] = DEFAULT_PROFILE) -> None:
                     if payload is not None:
                         try:
                             arb_id, data = build_response_frame(payload)
-                            resp = can.Message(arbitration_id=arb_id, data=data, is_extended_id=False)
+                            resp = can.Message(
+                                arbitration_id=arb_id,
+                                data=data,
+                                is_extended_id=False,
+                            )
                             self.bus.send(resp)
                         except Exception as e:
                             print(f"OBD responder error: {e}")
@@ -90,5 +105,4 @@ def run_simulator(profile: List[Tuple[str, float]] = DEFAULT_PROFILE) -> None:
 
 def main() -> None:
     run_simulator()
-
 

@@ -21,7 +21,13 @@ def read_frames(bus: can.BusABC, duration_s: float = 1.0) -> List[Frame]:
     while time.time() < end:
         msg = bus.recv(timeout=0.1)
         if msg:
-            frames.append(Frame(timestamp=msg.timestamp, arbitration_id=msg.arbitration_id, data=bytes(msg.data)))
+            frames.append(
+                Frame(
+                    timestamp=msg.timestamp,
+                    arbitration_id=msg.arbitration_id,
+                    data=bytes(msg.data),
+                )
+            )
     return frames
 
 
@@ -33,4 +39,3 @@ def shutdown_bus(bus: can.BusABC) -> None:
             shutdown_fn()
         except Exception:
             pass
-

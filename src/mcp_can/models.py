@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Any
+from typing import Any, List, Optional
 
 
 @dataclass
@@ -24,5 +24,4 @@ def frame_to_view(frame: Frame, *, signal_value: Optional[Any] = None) -> FrameV
         data=list(frame.data),
         signal_value=signal_value,
     )
-
 

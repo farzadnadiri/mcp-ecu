@@ -1,17 +1,15 @@
-from typing import Any, Dict, List, Optional
-
 import time
 import types
+from typing import Any, Dict, List, Optional
 
-import can
-from mcp.server.fastmcp import FastMCP, Context
+from mcp.server.fastmcp import Context, FastMCP
 from starlette.middleware.cors import CORSMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 
-from ..config import get_settings
-from ..dbc import load_dbc, decode_frame
 from ..bus import make_bus, shutdown_bus
+from ..config import get_settings
+from ..dbc import decode_frame, load_dbc
 
 
 def create_app() -> FastMCP:
@@ -21,7 +19,10 @@ def create_app() -> FastMCP:
     db = load_dbc(settings.dbc_path)
 
     @mcp.tool()
-    async def read_can_frames(duration_s: float = 1.0, ctx: Context | None = None) -> List[Dict[str, Any]]:
+    async def read_can_frames(
+        duration_s: float = 1.0,
+        ctx: Context | None = None,
+    ) -> List[Dict[str, Any]]:
         bus = make_bus(settings.can_interface, settings.can_channel)
         try:
             frames: List[Dict[str, Any]] = []
@@ -30,11 +31,13 @@ def create_app() -> FastMCP:
             while time.time() < end:
                 msg = bus.recv(timeout=0.1)
                 if msg:
-                    frames.append({
-                        "timestamp": msg.timestamp,
-                        "arbitration_id": hex(msg.arbitration_id),
-                        "data": list(msg.data)
-                    })
+                    frames.append(
+                        {
+                            "timestamp": msg.timestamp,
+                            "arbitration_id": hex(msg.arbitration_id),
+                            "data": list(msg.data),
+                        }
+                    )
                     count += 1
                     if ctx:
                         await ctx.report_progress(count)
@@ -55,7 +58,7 @@ def create_app() -> FastMCP:
         arbitration_id: Optional[int] = None,
         signal_name: Optional[str] = None,
         duration_s: float = 1.0,
-        ctx: Context | None = None
+        ctx: Context | None = None,
     ) -> List[Dict[str, Any]]:
         bus = make_bus(settings.can_interface, settings.can_channel)
         try:
@@ -70,7 +73,7 @@ def create_app() -> FastMCP:
                     frame_info: Dict[str, Any] = {
                         "timestamp": msg.timestamp,
                         "arbitration_id": hex(msg.arbitration_id),
-                        "data": list(msg.data)
+                        "data": list(msg.data),
                     }
                     if signal_name:
                         try:
@@ -93,7 +96,7 @@ def create_app() -> FastMCP:
     async def monitor_signal(
         signal_name: str,
         duration_s: float = 2.0,
-        ctx: Context | None = None
+        ctx: Context | None = None,
     ) -> List[Dict[str, Any]]:
         bus = make_bus(settings.can_interface, settings.can_channel)
         try:
@@ -106,10 +109,12 @@ def create_app() -> FastMCP:
                     try:
                         decoded = decode_frame(db, msg.arbitration_id, msg.data)
                         if signal_name in decoded:
-                            results.append({
-                                "timestamp": msg.timestamp,
-                                "value": decoded[signal_name]
-                            })
+                            results.append(
+                                {
+                                    "timestamp": msg.timestamp,
+                                    "value": decoded[signal_name],
+                                }
+                            )
                             count += 1
                             if ctx:
                                 await ctx.report_progress(count)
@@ -158,7 +163,7 @@ def create_app() -> FastMCP:
             info['messages'] = messages_info
         except FileNotFoundError:
             info['status'] = 'error'
-            info['message'] = f"DBC file not found"
+            info['message'] = "DBC file not found"
         except Exception as e:
             info['status'] = 'error'
             info['message'] = f"An unexpected error occurred: {e}"
